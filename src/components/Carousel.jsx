@@ -16,6 +16,8 @@ import Slide5 from './slides/Slide5'
 import Slide6 from './slides/Slide6'
 import Slide7 from './slides/Slide7'
 import { createPortal } from 'react-dom'
+import Snackbar from '@mui/material/Snackbar'
+import Button from '@mui/material/Button'
 
 export default function Carousel() {
   const frameRef = useRef(null)
@@ -27,6 +29,8 @@ export default function Carousel() {
   const [isLandscape, setIsLandscape] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const [showRotateHint, setShowRotateHint] = useState(false)
+  const [rotateSnackbarOpen, setRotateSnackbarOpen] = useState(false)
+  const snackbarTimer = useRef(null)
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   // Design size (original slide pixel size): we keep this to preserve original look
@@ -128,6 +132,27 @@ export default function Carousel() {
     if (overlayOpen || isLandscape) setShowRotateHint(false)
   }, [overlayOpen, isLandscape])
 
+  // Show centered snackbar when active slide changes (portrait mobile), auto-hide after 15s
+  useEffect(() => {
+    const w = window.innerWidth
+    const h = window.innerHeight
+    const isPortrait = h > w
+    if (w <= 900 && isPortrait && !overlayOpen) {
+      setRotateSnackbarOpen(true)
+      if (snackbarTimer.current) clearTimeout(snackbarTimer.current)
+      snackbarTimer.current = setTimeout(() => setRotateSnackbarOpen(false), 15000)
+    }
+    return () => {
+      if (snackbarTimer.current) { clearTimeout(snackbarTimer.current); snackbarTimer.current = null }
+    }
+  // trigger on each slide change
+  }, [activeIndex, overlayOpen])
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => { if (snackbarTimer.current) clearTimeout(snackbarTimer.current) }
+  }, [])
+
   // Open overlay (user or auto) and prepare state
   function openOverlay() {
     setOverlayOpen(true)
@@ -225,6 +250,18 @@ export default function Carousel() {
         </div>
       )}
 
+      {/* Rotate snackbar: centered bottom, auto-hide 15s, closable */}
+      <Snackbar
+        open={rotateSnackbarOpen}
+        onClose={() => setRotateSnackbarOpen(false)}
+        message="Gire o aparelho para ver em tela cheia"
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        action={
+          <Button size="small" onClick={() => setRotateSnackbarOpen(false)} sx={{ backgroundColor: 'primary.main', color: 'white', '&:hover': { backgroundColor: '#8f2206' } }}>
+            Entendi
+          </Button>
+        }
+      />
     </Box>
   )
 }
