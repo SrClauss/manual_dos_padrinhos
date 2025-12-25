@@ -31,37 +31,31 @@ export default function Carousel() {
   function updateScale() {
     const w = window.innerWidth
     const h = window.innerHeight
-    const isLandscape = w > h
-    const isSmallScreen = w <= 900
-
-    // If small-screen landscape (mobile landscape), hide content entirely (per spec)
-    if (isLandscape && isSmallScreen) {
-      setHidden(true)
+    
+    // Case 1: Desktop/Large screens (width > 900px) - show normal centered slide
+    if (w > 900) {
+      const scaleToFit = Math.min(1, (w - 80) / DESIGN_W, (h - 120) / DESIGN_H)
+      setScale(scaleToFit)
       setExpanded(false)
-      setScale(1)
+      setHidden(false)
       return
     }
-
-    // Ensure it's visible otherwise
+    
+    // Case 2: Mobile Portrait (width <= 900 and height > width) - show framed slide
+    if (h > w) {
+      const scaleX = (w - 32) / DESIGN_W
+      const scaleY = (h * 0.6) / DESIGN_H
+      setScale(Math.min(scaleX, scaleY, 1))
+      setExpanded(false)
+      setHidden(false)
+      return
+    }
+    
+    // Case 3: Mobile Landscape (width <= 900 and width >= height) - expand to fill screen
+    const scaleForHeight = (h - 60) / DESIGN_H
+    setScale(Math.min(scaleForHeight, 1))
+    setExpanded(true)
     setHidden(false)
-
-    // Desktop or tablet landscape: keep the original slide centered, no expansion overlay
-    if (isLandscape && !isSmallScreen) {
-      // Keep natural size, but if viewport is narrower than design, shrink proportionally
-      const scaleForWidth = Math.min(1, w / DESIGN_W)
-      setScale(scaleForWidth)
-      setExpanded(false)
-      return
-    }
-
-    // Portrait small screens: show a centered framed slide that doesn't distort: compute scale to fit a band
-    const maxFrameWidth = Math.min(w - 32, DESIGN_W) // margin 16px each side
-    const frameHeight = Math.min(h * 0.55, DESIGN_H) // cover up to ~55% of height
-    const scaleX = maxFrameWidth / DESIGN_W
-    const scaleY = frameHeight / DESIGN_H
-    const finalScale = Math.min(scaleX, scaleY)
-    setScale(finalScale)
-    setExpanded(false)
   }
 
   useEffect(() => {
@@ -80,12 +74,49 @@ export default function Carousel() {
     if (hidden) return <div className="slide-frame" style={{ minHeight: 40 }} />
     return (
       <div className={`slide-frame ${expanded ? 'expanded' : ''}`} ref={frameRef}>
-        <div className="slide-scale" style={{ transform: `scale(${scale})`, transformOrigin: 'center top', transition: prefersReducedMotion ? 'none' : 'transform 240ms ease' }}>
+        <div className="slide-scale" style={{ transform: `scale(${scale})`, transformOrigin: 'center center', transition: prefersReducedMotion ? 'none' : 'transform 240ms ease' }}>
           {children}
         </div>
       </div>
     )
   }
+
+  // Fullscreen helpers — apply to the currently active slide frame
+  async function enterFullscreenForActiveSlide() {
+    try {
+      const activeFrame = document.querySelector('.swiper-slide-active .slide-frame')
+      if (!activeFrame) return
+      // request fullscreen on the frame (user gesture required)
+      if (activeFrame.requestFullscreen) {
+        await activeFrame.requestFullscreen()
+      }
+      // ensure visible and expanded state
+      setHidden(false)
+      setExpanded(true)
+      // scale to fit height while preserving ratio
+      const h = window.innerHeight
+      setScale(h / DESIGN_H)
+    } catch (err) {
+      console.error('Fullscreen failed', err)
+    }
+  }
+
+  function exitFullscreenHandler() {
+    const isFS = !!document.fullscreenElement
+    if (!isFS) {
+      // exited fullscreen
+      setExpanded(false)
+      // recompute normal scale
+      updateScale()
+    }
+  }
+
+  useEffect(() => {
+    document.addEventListener('fullscreenchange', exitFullscreenHandler)
+    return () => document.removeEventListener('fullscreenchange', exitFullscreenHandler)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
 
   return (
     <Box sx={{ width: '100%', minHeight: { xs: '70vh', md: '80vh' } }}>
@@ -106,6 +137,13 @@ export default function Carousel() {
         <SwiperSlide data-hash="local"><SlideWrapper><Slide6/></SlideWrapper></SwiperSlide>
         <SwiperSlide data-hash="final"><SlideWrapper><Slide7/></SlideWrapper></SwiperSlide>
       </Swiper>
+
+      {/* Fullscreen button for small screens */}
+      <div className="fullscreen-button-wrapper">
+        <button aria-label="Full screen" className="fullscreen-button" onClick={enterFullscreenForActiveSlide}>
+          ⤢
+        </button>
+      </div>
     </Box>
   )
 }

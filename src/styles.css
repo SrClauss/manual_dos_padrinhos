@@ -82,8 +82,17 @@ p, li { font-size: 22px; line-height: 1.6; }
 }
 
 /* When hidden (mobile landscape), ensure minimal layout footprint */
-.slide-frame { min-height: 40px; }
+.slide-frame { min-height: 40px; display:flex; justify-content:center; align-items:center }
 .slide-frame.hidden { display: none; }
+
+/* Fullscreen button */
+.fullscreen-button-wrapper { position: fixed; right: 16px; bottom: 24px; z-index: 1300; }
+.fullscreen-button { background: #B02C0C; color: white; border: none; width:44px; height:44px; border-radius: 50%; font-size: 18px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); cursor: pointer }
+.fullscreen-button:active { transform: scale(0.98); }
+
+@media (min-width: 901px) {
+  .fullscreen-button-wrapper { display: none; }
+}
 /* On small portrait screens we keep a framed band without distortion */
 @media (max-width: 900px) {
   .slide-frame { padding: 8px 12px; }
