@@ -81,6 +81,9 @@ p, li { font-size: 22px; line-height: 1.6; }
   padding: 0;
 }
 
+/* When hidden (mobile landscape), ensure minimal layout footprint */
+.slide-frame { min-height: 40px; }
+.slide-frame.hidden { display: none; }
 /* On small portrait screens we keep a framed band without distortion */
 @media (max-width: 900px) {
   .slide-frame { padding: 8px 12px; }

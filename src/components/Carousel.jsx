@@ -21,6 +21,7 @@ export default function Carousel() {
   const frameRef = useRef(null)
   const [scale, setScale] = useState(1)
   const [expanded, setExpanded] = useState(false)
+  const [hidden, setHidden] = useState(false)
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   // Design size (original slide pixel size): we keep this to preserve original look
@@ -31,17 +32,29 @@ export default function Carousel() {
     const w = window.innerWidth
     const h = window.innerHeight
     const isLandscape = w > h
+    const isSmallScreen = w <= 900
 
-    // If landscape, expand to cover (full screen), but maintain aspect ratio without distortion
-    if (isLandscape) {
-      // scale to fit height (so it fills vertically), but may leave horizontal space
-      const scaleForHeight = h / DESIGN_H
-      setScale(scaleForHeight)
-      setExpanded(true)
+    // If small-screen landscape (mobile landscape), hide content entirely (per spec)
+    if (isLandscape && isSmallScreen) {
+      setHidden(true)
+      setExpanded(false)
+      setScale(1)
       return
     }
 
-    // Portrait: show a centered framed slide that doesn't distort: compute scale to fit a band
+    // Ensure it's visible otherwise
+    setHidden(false)
+
+    // Desktop or tablet landscape: keep the original slide centered, no expansion overlay
+    if (isLandscape && !isSmallScreen) {
+      // Keep natural size, but if viewport is narrower than design, shrink proportionally
+      const scaleForWidth = Math.min(1, w / DESIGN_W)
+      setScale(scaleForWidth)
+      setExpanded(false)
+      return
+    }
+
+    // Portrait small screens: show a centered framed slide that doesn't distort: compute scale to fit a band
     const maxFrameWidth = Math.min(w - 32, DESIGN_W) // margin 16px each side
     const frameHeight = Math.min(h * 0.55, DESIGN_H) // cover up to ~55% of height
     const scaleX = maxFrameWidth / DESIGN_W
@@ -64,6 +77,7 @@ export default function Carousel() {
 
   // Helper that wraps slides so we can scale them without changing inner markup
   function SlideWrapper({ children }) {
+    if (hidden) return <div className="slide-frame" style={{ minHeight: 40 }} />
     return (
       <div className={`slide-frame ${expanded ? 'expanded' : ''}`} ref={frameRef}>
         <div className="slide-scale" style={{ transform: `scale(${scale})`, transformOrigin: 'center top', transition: prefersReducedMotion ? 'none' : 'transform 240ms ease' }}>
