@@ -1,4 +1,5 @@
 import React from 'react'
+import Box from '@mui/material/Box'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination, HashNavigation, Keyboard } from 'swiper/modules'
 import 'swiper/css'
@@ -16,7 +17,7 @@ import Slide7 from './slides/Slide7'
 
 export default function Carousel() {
   return (
-    <div className="carousel-wrapper">
+    <Box sx={{ width: '100%', minHeight: { xs: '70vh', md: '80vh' } }}>
       <Swiper
         modules={[Navigation, Pagination, HashNavigation, Keyboard]}
         navigation
@@ -34,6 +35,6 @@ export default function Carousel() {
         <SwiperSlide data-hash="local"><Slide6/></SwiperSlide>
         <SwiperSlide data-hash="final"><Slide7/></SwiperSlide>
       </Swiper>
-    </div>
+    </Box>
   )
 }
