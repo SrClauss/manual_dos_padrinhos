@@ -26,6 +26,7 @@ export default function Carousel() {
   const [hidden, setHidden] = useState(false)
   const [isLandscape, setIsLandscape] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
+  const [showRotateHint, setShowRotateHint] = useState(false)
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
   // Design size (original slide pixel size): we keep this to preserve original look
@@ -54,6 +55,8 @@ export default function Carousel() {
       setExpanded(false)
       setHidden(false)
       setIsLandscape(false)
+      // show rotate hint in portrait mobile when overlay is not open
+      if (w <= 900 && !overlayOpen) setShowRotateHint(true)
       return
     }
     
@@ -91,25 +94,6 @@ export default function Carousel() {
     )
   }
 
-  // Fullscreen helpers — apply to the currently active slide frame
-  async function enterFullscreenForActiveSlide() {
-    try {
-      const activeFrame = document.querySelector('.swiper-slide-active .slide-frame')
-      if (!activeFrame) return
-      // request fullscreen on the frame (user gesture required)
-      if (activeFrame.requestFullscreen) {
-        await activeFrame.requestFullscreen()
-      }
-      // ensure visible and expanded state
-      setHidden(false)
-      setExpanded(true)
-      // scale to fit height while preserving ratio
-      const h = window.innerHeight
-      setScale(h / DESIGN_H)
-    } catch (err) {
-      console.error('Fullscreen failed', err)
-    }
-  }
 
   function exitFullscreenHandler() {
     const isFS = !!document.fullscreenElement
@@ -132,6 +116,17 @@ export default function Carousel() {
     if (overlayOpen) document.body.classList.add('landscape-overlay-open')
     else document.body.classList.remove('landscape-overlay-open')
   }, [overlayOpen])
+
+  // Auto-hide rotate hint after a short time, or hide when overlay opens/isLandscape
+  useEffect(() => {
+    if (!showRotateHint) return
+    const t = setTimeout(() => setShowRotateHint(false), 3500)
+    return () => clearTimeout(t)
+  }, [showRotateHint])
+
+  useEffect(() => {
+    if (overlayOpen || isLandscape) setShowRotateHint(false)
+  }, [overlayOpen, isLandscape])
 
   // Open overlay (user or auto) and prepare state
   function openOverlay() {
@@ -200,12 +195,6 @@ export default function Carousel() {
         <SwiperSlide data-hash="final"><SlideWrapper><Slide7/></SlideWrapper></SwiperSlide>
       </Swiper>
 
-      {/* Fullscreen button for small screens */}
-      <div className="fullscreen-button-wrapper">
-        <button aria-label="Full screen" className="fullscreen-button" onClick={enterFullscreenForActiveSlide}>
-          ⤢
-        </button>
-      </div>
 
       {/* Landscape overlay rendered to body via portal so it's not affected by Swiper transforms */}
       {overlayOpen && createPortal(
@@ -228,6 +217,14 @@ export default function Carousel() {
         </div>,
         document.body
       )}
+      {/* Rotate hint for portrait mobile */}
+      {showRotateHint && (
+        <div className="rotate-hint" role="status" aria-live="polite">
+          <span>Gire o aparelho para ver em tela cheia</span>
+          <button className="rotate-hint-close" aria-label="Fechar" onClick={() => setShowRotateHint(false)}>✕</button>
+        </div>
+      )}
+
     </Box>
   )
 }

@@ -96,14 +96,7 @@ p, li { font-size: 22px; line-height: 1.6; }
 .slide-frame { min-height: 40px; display:flex; justify-content:center; align-items:center }
 .slide-frame.hidden { display: none; }
 
-/* Fullscreen button */
-.fullscreen-button-wrapper { position: fixed; right: 16px; bottom: 24px; z-index: 1300; }
-.fullscreen-button { background: #B02C0C; color: white; border: none; width:44px; height:44px; border-radius: 50%; font-size: 18px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); cursor: pointer }
-.fullscreen-button:active { transform: scale(0.98); }
 
-@media (min-width: 901px) {
-  .fullscreen-button-wrapper { display: none; }
-}
 
 /* Portal overlay styles for landscape */
 .landscape-overlay {
@@ -140,6 +133,15 @@ body.landscape-overlay-open { overflow: hidden; }
 /* Ensure buttons and overlay are visible on mobile */
 .overlay-nav { opacity: 0.95 }
 .overlay-close, .overlay-fullscreen { font-size: 14px }
+
+/* Rotate hint (mobile portrait) */
+.rotate-hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: 78px; background: rgba(255,255,255,0.98); color: #222; padding: 8px 12px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 1500; display:flex; gap:8px; align-items:center }
+.rotate-hint span { font-size: 14px }
+.rotate-hint-close { background: transparent; border: none; font-size: 14px; padding: 4px }
+
+@media (min-width: 901px) {
+  .rotate-hint { display: none }
+}
 
 /* On small portrait screens we keep a framed band without distortion */
 @media (max-width: 900px) {
