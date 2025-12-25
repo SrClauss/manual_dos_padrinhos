@@ -130,6 +130,17 @@ p, li { font-size: 22px; line-height: 1.6; }
 
 /* Ensure overlay content doesn't apply page scroll */
 body.landscape-overlay-open { overflow: hidden; }
+
+/* Overlay header, close and fullscreen CTA */
+.overlay-header { position: absolute; top: 8px; right: 12px; z-index: 10 }
+.overlay-close { background: rgba(255,255,255,0.95); border: none; padding: 6px 10px; border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,0.12) }
+.overlay-cta { display:flex; justify-content:center; margin-top: 10px }
+.overlay-fullscreen { background: #B02C0C; color: white; border: none; padding: 8px 14px; border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,0.12) }
+
+/* Ensure buttons and overlay are visible on mobile */
+.overlay-nav { opacity: 0.95 }
+.overlay-close, .overlay-fullscreen { font-size: 14px }
+
 /* On small portrait screens we keep a framed band without distortion */
 @media (max-width: 900px) {
   .slide-frame { padding: 8px 12px; }

@@ -19,8 +19,10 @@ import { createPortal } from 'react-dom'
 
 export default function Carousel() {
   const frameRef = useRef(null)
+  const overlayRef = useRef(null)
   const [scale, setScale] = useState(1)
   const [expanded, setExpanded] = useState(false)
+  const [overlayOpen, setOverlayOpen] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [isLandscape, setIsLandscape] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
@@ -61,6 +63,7 @@ export default function Carousel() {
     // limit scale so slide always fits within viewport and doesn't overflow vertically
     setScale(Math.min(scaleForHeight, scaleForWidth, 1))
     setExpanded(true)
+    setOverlayOpen(true) // open overlay automatically in mobile landscape
     setHidden(false)
     setIsLandscape(true)
   }
@@ -126,9 +129,38 @@ export default function Carousel() {
 
   // Keep body class in sync when overlay is open to prevent scrolling
   useEffect(() => {
-    if (expanded && isLandscape) document.body.classList.add('landscape-overlay-open')
+    if (overlayOpen) document.body.classList.add('landscape-overlay-open')
     else document.body.classList.remove('landscape-overlay-open')
-  }, [expanded, isLandscape])
+  }, [overlayOpen])
+
+  // Open overlay (user or auto) and prepare state
+  function openOverlay() {
+    setOverlayOpen(true)
+    setExpanded(true)
+  }
+
+  // Close overlay (user action)
+  async function closeOverlay() {
+    setOverlayOpen(false)
+    setExpanded(false)
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen()
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  // Try to request fullscreen on the overlay element (must be user gesture for most browsers)
+  async function requestOverlayFullscreen() {
+    try {
+      const el = overlayRef.current
+      if (!el) return
+      if (el.requestFullscreen) await el.requestFullscreen()
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
+    } catch (err) {
+      console.error('Fullscreen request failed', err)
+    }
+  }
 
 
   const slidesArr = [<div key="s1"><Slide1/></div>, <div key="s2"><Slide2/></div>, <div key="s3"><Slide3/></div>, <div key="s4"><Slide4/></div>, <div key="s5"><Slide5/></div>, <div key="s6"><Slide6/></div>, <div key="s7"><Slide7/></div>]
@@ -176,14 +208,22 @@ export default function Carousel() {
       </div>
 
       {/* Landscape overlay rendered to body via portal so it's not affected by Swiper transforms */}
-      {expanded && isLandscape && createPortal(
-        <div className="landscape-overlay" onTouchStart={onOverlayTouchStart} onTouchEnd={onOverlayTouchEnd}>
+      {overlayOpen && createPortal(
+        <div className="landscape-overlay" ref={overlayRef} onTouchStart={onOverlayTouchStart} onTouchEnd={onOverlayTouchEnd}>
           <button className="overlay-nav overlay-prev" aria-label="Previous" onClick={handlePrev}>‹</button>
+
           <div className="overlay-scale" style={{ transform: `scale(${scale})` }}>
             <div className="overlay-inner">
+              <div className="overlay-header">
+                <button className="overlay-close" aria-label="Fechar" onClick={closeOverlay}>✕</button>
+              </div>
               {slidesArr[activeIndex]}
+              <div className="overlay-cta">
+                <button className="overlay-fullscreen" onClick={requestOverlayFullscreen}>Abrir em tela cheia</button>
+              </div>
             </div>
           </div>
+
           <button className="overlay-nav overlay-next" aria-label="Next" onClick={handleNext}>›</button>
         </div>,
         document.body
