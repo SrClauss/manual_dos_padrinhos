@@ -61,15 +61,16 @@ p, li { font-size: 22px; line-height: 1.6; }
   width: 100%;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   padding: 16px 0;
   box-sizing: border-box;
+  min-height: 300px;
 }
 
 /* Container that will be scaled: keep the original design pixel size so scaling preserves look */
 .slide-scale { width: 1280px; height: 720px; display: block; }
 
-/* When expanded (landscape) we show the slide centered and covering as much as possible */
+/* When expanded (landscape mobile) we show the slide centered in a full-screen overlay */
 .slide-frame.expanded {
   position: fixed;
   inset: 0;
@@ -77,9 +78,19 @@ p, li { font-size: 22px; line-height: 1.6; }
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0,0,0,0.04);
-  padding: 0;
+  padding: 20px;
+  background: rgba(0,0,0,0.06);
 }
+
+/* Make the scaled slide visually centered and constrained */
+.slide-frame.expanded .slide-scale {
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  background: transparent;
+  will-change: transform;
+}
+
 
 /* When hidden (mobile landscape), ensure minimal layout footprint */
 .slide-frame { min-height: 40px; display:flex; justify-content:center; align-items:center }
@@ -93,6 +104,32 @@ p, li { font-size: 22px; line-height: 1.6; }
 @media (min-width: 901px) {
   .fullscreen-button-wrapper { display: none; }
 }
+
+/* Portal overlay styles for landscape */
+.landscape-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  background: rgba(0,0,0,0.06);
+}
+.landscape-overlay .overlay-scale {
+  width: 1280px;
+  height: 720px;
+  transform-origin: center center;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.16);
+  border-radius: 8px;
+  background: transparent;
+}
+.landscape-overlay .overlay-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center }
+.landscape-overlay .overlay-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; font-size: 40px; width:64px; height:64px; border-radius:50%; box-shadow: 0 8px 24px rgba(0,0,0,0.12); color:#B02C0C }
+.landscape-overlay .overlay-prev { left: 20px }
+.landscape-overlay .overlay-next { right: 20px }
+
+/* Ensure overlay content doesn't apply page scroll */
+body.landscape-overlay-open { overflow: hidden; }
 /* On small portrait screens we keep a framed band without distortion */
 @media (max-width: 900px) {
   .slide-frame { padding: 8px 12px; }
