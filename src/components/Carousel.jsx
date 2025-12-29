@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
@@ -66,7 +66,7 @@ export default function Carousel() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [activeIndex])
+  }, [])
 
   return (
     <Box sx={{ width: '100%', minHeight: { xs: '70vh', md: '80vh' }, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
